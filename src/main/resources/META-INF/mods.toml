@@ -1,0 +1,10 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="scpretro"
+version="1.0.0"
+displayName="SCP Lockdown Retro Restoration"
+description="Brings back the classic 1.12.2 instant structure-spawning documents to modern 1.20.1 Forge."
+authors="You & AI"

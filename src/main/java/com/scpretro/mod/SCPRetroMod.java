@@ -1,6 +1,7 @@
 package com.scpretro.mod;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -8,6 +9,8 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -25,11 +28,8 @@ import java.util.Optional;
 @Mod(SCPRetroMod.MODID)
 public class SCPRetroMod {
     public static final String MODID = "scpretro";
-    
-    // Create an item registry
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
-    // Register our custom SCP-173 Document Item!
     public static final RegistryObject<Item> SCP_173_DOCUMENT = ITEMS.register("scp_173_document", 
         () -> new Item(new Item.Properties().stacksTo(1)) {
             @Override
@@ -40,18 +40,31 @@ public class SCPRetroMod {
                     ServerLevel serverWorld = (ServerLevel) world;
                     StructureTemplateManager manager = serverWorld.getStructureManager();
                     
-                    // Looks inside the mod files for our pre-built facility chamber
-                    Optional<StructureTemplate> templateOpt = manager.get(new ResourceLocation(MODID, "scp_173_chamber"));
+                    ResourceLocation structureLocation = new ResourceLocation(MODID, "scp_173_chamber");
+                    Optional<StructureTemplate> templateOpt = manager.get(structureLocation);
+                    
                     if (templateOpt.isPresent()) {
                         StructureTemplate template = templateOpt.get();
-                        StructurePlaceSettings settings = new StructurePlaceSettings().setIgnoreEntities(false);
-                        template.placeInWorld(serverWorld, spawnPos, spawnPos, settings, serverWorld.random, 2);
                         
-                        // Consume the document if not in creative mode
-                        if (!context.getPlayer().isCreative()) {
-                            context.getItemInHand().shrink(1);
+                        // Robust placement settings to force modern 1.20.1 grid compliance
+                        StructurePlaceSettings settings = new StructurePlaceSettings()
+                                .setMirror(Mirror.NONE)
+                                .setRotation(Rotation.NONE)
+                                .setIgnoreEntities(false)
+                                .setKeepLiquids(false);
+                        
+                        boolean success = template.placeInWorld(serverWorld, spawnPos, spawnPos, settings, serverWorld.random, 3);
+                        
+                        if (success) {
+                            context.getPlayer().sendSystemMessage(Component.literal("§aFacility spawned successfully!"));
+                            if (!context.getPlayer().isCreative()) {
+                                context.getItemInHand().shrink(1);
+                            }
+                        } else {
+                            context.getPlayer().sendSystemMessage(Component.literal("§cMinecraft refused to place the structure blocks. The NBT file might be corrupted or out-of-bounds."));
                         }
-                        return InteractionResult.SUCCESS;
+                    } else {
+                        context.getPlayer().sendSystemMessage(Component.literal("§cError: Could not find 'scp_173_chamber.nbt' inside the mod files!"));
                     }
                 }
                 return InteractionResult.SUCCESS;
@@ -65,7 +78,6 @@ public class SCPRetroMod {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    // Puts the document straight into the vanilla Tools creative tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(SCP_173_DOCUMENT);

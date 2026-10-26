@@ -16,7 +16,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
       - name: Upload Mod Jar Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: SCP-Retro-Mod
           path: build/libs/*.jar

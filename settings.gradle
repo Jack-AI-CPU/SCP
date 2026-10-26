@@ -1,8 +1,0 @@
-pluginManagement {
-    repositories {
-        maven { url = 'https://minecraftforge.net' }
-        gradlePluginPortal()
-    }
-}
-
-rootProject.name = 'scpretro'

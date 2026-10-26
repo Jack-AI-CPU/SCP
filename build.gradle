@@ -33,3 +33,6 @@ sourceSets.main.resources { srcDir 'src/main/resources' }
 dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
 }
+tasks.named('processResources', ProcessResources).configure {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}

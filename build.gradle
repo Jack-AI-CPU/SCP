@@ -28,11 +28,49 @@ minecraft {
     }
 }
 
-sourceSets.main.resources { srcDir 'src/main/resources' }
+buildscript {
+    repositories {
+        maven { url = 'https://minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+
+version = '1.0.0'
+group = 'com.scpretro.mod'
+archivesBaseName = 'scpretro'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods { scpretro { source sourceSets.main } }
+        }
+    }
+}
+
+// Fixed resources configuration to ensure data/scpretro/structures is fully bundled
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
 }
+
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
